@@ -116,7 +116,7 @@ def merge_csv():
     
     for i in csv_list:
         data = pd.read_csv(i, header=None)
-        df = pd.concat([df,data], ignore_index=True)
+        df = pd.concat([df,data], axis=0,ignore_index=True)
         merge_data = df
     
     
@@ -130,14 +130,41 @@ def merge_csv():
         progress_bar.update()
             
     dest_path = os.path.join(txt_save_path.get(),"finish.csv")
-    merge_data.to_csv(dest_path)
+    merge_data.to_csv(dest_path, index=False)
+    msgbox.showinfo("complete","작업완료")
+    
+def split_csv():
+   
+    df = pd.DataFrame()
+    csv_list = [x for x in list_file.get(0,END)]
+    csv_format = cmb_format.get().lower()     
+    a = 0
+
+    for i in csv_list:
+        data = pd.read_csv(i, header=None)
+        for row in range(data.shape[0]):
+            a+=1
+            dfs = data.loc[[row],:]
+            dest_path = os.path.join(txt_save_path.get(),'_'+ str(a)+'.csv')
+            dfs.to_csv(dest_path,header=None, index=False)
+    
+    
+    
+    #포맷
+        for idx in range(data.shape[0]):
+            
+            #프로그레스바 퍼센트 정보
+            progress = (idx + 1) / len(data.shape[0]) * 100
+            p_bar.set(progress)
+            progress_bar.update()
+            
     msgbox.showinfo("complete","작업완료")
 
-# 시작
+# csv merge 시작
 def csv_start():   
     # 파일목록 확인
     if list_file.size() == 0:
-        msgbox.showwarning("경고","이미지파일을 추가하세요")
+        msgbox.showwarning("경고","CSV파일을 추가하세요")
         return
     
     #저장경로 확인
@@ -147,6 +174,22 @@ def csv_start():
     
     #이미지 통합작업
     merge_csv()
+
+def split_start():   
+    # 파일목록 확인
+    if list_file.size() == 0:
+        msgbox.showwarning("경고","CSV파일을 추가하세요")
+        return
+    
+    #저장경로 확인
+    if len(txt_save_path.get()) == 0:
+        msgbox.showwarning("경고","저장경로를 선택하세요")
+        return
+    
+    #csv 분할작업
+    split_csv()
+    
+    
             
 #Frame(파일 추가 선택 삭제)
 file_frame = Frame(root)
@@ -208,7 +251,7 @@ cmb_space.pack(side="left",padx=5, pady=5)
 label_format = Label(frame_option, text="포맷", width=8)
 label_format.pack(side="left",padx=5, pady=5)
 #파일포맷 옵션 콤보
-opt_format = ["PNG","JPG","BMP","CSV"]
+opt_format = ["CSV","PNG","JPG","BMP"]
 cmb_format = ttk.Combobox(frame_option, state="readonly", values=opt_format)
 cmb_format.current(0)
 cmb_format.pack(side="left",padx=5, pady=5)
@@ -230,6 +273,9 @@ btn_close.pack(side="right",padx=5, pady=5)
 btn_start = Button(frame_run, padx=5, pady=5, text="시작", width=12, command=start)
 btn_start.pack(side="right",padx=5, pady=5)
 
-csv_start = Button(frame_run, padx=5, pady=5, text="csv병합", width=12, command=csv_start)
+csv_start = Button(frame_run, padx=5, pady=5, text="CSV병합", width=12, command=csv_start)
+csv_start.pack(side="right", padx=5, pady=5)
+
+csv_start = Button(frame_run, padx=5, pady=5, text="CSV행분할", width=12, command=split_start)
 csv_start.pack(side="right", padx=5, pady=5)
 root.mainloop()
